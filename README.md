@@ -1,10 +1,10 @@
 ## MultiDump
 
-### MultiDump is a post-exploitation tool written in C for dumping and extracting LSASS memory discreetly, without triggering Defender alerts, with a handler written in Python.
+MultiDump is a post-exploitation tool written in C for dumping and extracting LSASS memory discreetly, without triggering Defender alerts, with a handler written in Python.
 
 ![](multidump-defender.gif)
 
-### Blog post: https://xre0us.github.io/posts/multidump
+Blog post: https://xre0us.github.io/posts/multidump
 
 MultiDump supports LSASS dump via `ProcDump.exe` or `Comsvc.dll`, it offers two modes: a local mode that encrypts and stores the dump file locally, and a remote mode that sends the dump to a handler for decryption and analysis.
 

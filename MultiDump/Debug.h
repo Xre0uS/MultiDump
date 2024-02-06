@@ -31,4 +31,4 @@
             WriteConsoleA( GetStdHandle( STD_OUTPUT_HANDLE ), buf, len, NULL, NULL );       \
             HeapFree( GetProcessHeap(), 0, buf );                                           \
         }                                                                                   \
-    }  
+    }

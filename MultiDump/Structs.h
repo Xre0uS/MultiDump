@@ -36,10 +36,14 @@ typedef struct _UNICODE_STRING {
 
 
 typedef PVOID PACTIVATION_CONTEXT;
-typedef PVOID PRTL_USER_PROCESS_PARAMETERS;
 typedef PVOID PAPI_SET_NAMESPACE;
 
-
+typedef struct _RTL_USER_PROCESS_PARAMETERS {
+    BYTE Reserved1[16];
+    PVOID Reserved2[10];
+    UNICODE_STRING ImagePathName;
+    UNICODE_STRING CommandLine;
+} RTL_USER_PROCESS_PARAMETERS, * PRTL_USER_PROCESS_PARAMETERS;
 
 // https://www.nirsoft.net/kernel_struct/vista/PEB_LDR_DATA.html
 

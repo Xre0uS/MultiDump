@@ -306,8 +306,8 @@ int main(int argc, char* argv[]) {
 		swprintf(wszDummyCmd, sizeof(wszDummyCmd) / sizeof(WCHAR), L"%ls %ls %ls%ls", wszProcDumpPath, dummyProcDumpArgs, wszTmpPath, wszTmpFile);
 	}
 
-	//==========================================================================================================================================================
-	// Constructing the comsvcs commands
+//==========================================================================================================================================================
+// Constructing the comsvcs commands
 
 	else {
 		Rc4EncryptionViaSystemFunc032(strEncKey, comsvcsArgs, sizeof(strEncKey), sizeof(comsvcsArgs));

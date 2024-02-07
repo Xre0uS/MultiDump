@@ -8,8 +8,6 @@ Blog post: https://xre0us.github.io/posts/multidump
 
 MultiDump supports LSASS dump via `ProcDump.exe` or `Comsvc.dll`, it offers two modes: a local mode that encrypts and stores the dump file locally, and a remote mode that sends the dump to a handler for decryption and analysis.
 
-*For Windows 10 22H2 19045, MultiDump can cause the OS to freeze up. Seems to be some conflict with Defender, it does not get detected throughout so I'm not sure what Defender doing. It only affects this specific version of Windows, and not older or newer builds.*
-
 ## Usage
 
 ```powershell

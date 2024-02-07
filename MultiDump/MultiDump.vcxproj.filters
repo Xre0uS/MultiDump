@@ -33,6 +33,9 @@
     <ClCompile Include="SelfDeletion.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Processes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">

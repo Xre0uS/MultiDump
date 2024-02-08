@@ -110,7 +110,7 @@ DWORD* GetRemoteProcessSuspendedThreads(IN LPCWSTR szProcName, OUT DWORD* thread
 #ifdef DEBUG
 			printf("[!] HeapAlloc Failed With Error : %d\n", GetLastError());
 #endif // DEBUG
-			return;
+			return NULL;
 		}
 
 		STATUS = pNtQuerySystemInformation(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2);

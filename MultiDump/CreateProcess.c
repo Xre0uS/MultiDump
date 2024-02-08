@@ -4,14 +4,6 @@
 #include "Debug.h"
 #include "Common.h"
 
-typedef NTSTATUS(NTAPI* fnNtQueryInformationProcess)(
-	HANDLE           ProcessHandle,
-	PROCESSINFOCLASS ProcessInformationClass,
-	PVOID            ProcessInformation,
-	ULONG            ProcessInformationLength,
-	PULONG           ReturnLength
-	);
-
 // Helper Function
 // Read Data from remote process of handle `hProcess` from the address `pAddress` of size `dwBufferSize`
 // output base address is saved in `ppReadBuffer` parameter 

@@ -135,7 +135,7 @@ DWORD* GetRemoteProcessSuspendedThreads(IN LPCWSTR szProcName, OUT DWORD* thread
 	// Enumerating SystemProcInfo, looking for process "szProcName"
 	while (TRUE) {
 
-		// Searching for thr process name
+		// Searching for the process name
 		if (SystemProcInfo->ImageName.Length && wcsncmp(SystemProcInfo->ImageName.Buffer, szProcName, SystemProcInfo->ImageName.Length / sizeof(WCHAR)) == 0) {
 			// Enumerate threads of the found process
 			for (ULONG i = 0; i < SystemProcInfo->NumberOfThreads; i++) {

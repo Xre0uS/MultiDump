@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
 	if (!IsPrivileged()) {
 #ifdef DEBUG
-		printf("[!] Dumping LSASS Requires Elevated Priviledges!");
+		printf("[!] Dumping LSASS Requires Elevated Privileges!");
 #endif // DEBUG
 		return -1;
 	}

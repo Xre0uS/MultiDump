@@ -77,7 +77,7 @@ If `--procdump` is used, `ProcDump.exe` will be writtern to disk to dump LSASS.
 In remote mode, MultiDump connects to the handler's listener.
 
 ```bash
-./ProcDumpHandler.py -r 9001
+./MultidumpHandler.py -r 9001
 [i] Listening on port 9001 for encrypted key...
 ```
 

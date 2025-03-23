@@ -470,8 +470,6 @@ typedef struct _TEB {
 #endif
 } TEB, * PTEB;
 
-
-
 // https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntexapi.h#L1324
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
@@ -717,21 +715,98 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     MaxSystemInfoClass
 } SYSTEM_INFORMATION_CLASS;
 
+// https://github.com/winsiderss/systeminformer/blob/master/phnt/include/phnt_ntdef.h#L59
+typedef LONG KPRIORITY, * PKPRIORITY;
 
-// https://processhacker.sourceforge.io/doc/ntbasic_8h.html
-typedef LONG KPRIORITY;
+// https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntkeapi.h#L17
+typedef enum _KTHREAD_STATE
+{
+    Initialized,
+    Ready,
+    Running,
+    Standby,
+    Terminated,
+    Waiting,
+    Transition,
+    DeferredReady,
+    GateWaitObsolete,
+    WaitingForProcessInSwap,
+    MaximumThreadState
+} KTHREAD_STATE, * PKTHREAD_STATE;
 
+// https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntkeapi.h#L50
+typedef enum _KWAIT_REASON
+{
+    Executive,
+    FreePage,
+    PageIn,
+    PoolAllocation,
+    DelayExecution,
+    Suspended,
+    UserRequest,
+    WrExecutive,
+    WrFreePage,
+    WrPageIn,
+    WrPoolAllocation,
+    WrDelayExecution,
+    WrSuspended,
+    WrUserRequest,
+    WrEventPair,
+    WrQueue,
+    WrLpcReceive,
+    WrLpcReply,
+    WrVirtualMemory,
+    WrPageOut,
+    WrRendezvous,
+    WrKeyedEvent,
+    WrTerminated,
+    WrProcessInSwap,
+    WrCpuRateControl,
+    WrCalloutStack,
+    WrKernel,
+    WrResource,
+    WrPushLock,
+    WrMutex,
+    WrQuantumEnd,
+    WrDispatchInt,
+    WrPreempted,
+    WrYieldExecution,
+    WrFastMutex,
+    WrGuardedMutex,
+    WrRundown,
+    WrAlertByThreadId,
+    WrDeferredPreempt,
+    WrPhysicalFault,
+    WrIoRing,
+    WrMdlCache,
+    MaximumWaitReason
+} KWAIT_REASON, * PKWAIT_REASON;
 
+// https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntexapi.h#L1706
+typedef struct _SYSTEM_THREAD_INFORMATION
+{
+    LARGE_INTEGER KernelTime;
+    LARGE_INTEGER UserTime;
+    LARGE_INTEGER CreateTime;
+    ULONG WaitTime;
+    PVOID StartAddress;
+    CLIENT_ID ClientId;
+    KPRIORITY Priority;
+    KPRIORITY BasePriority;
+    ULONG ContextSwitches;
+    KTHREAD_STATE ThreadState;
+    KWAIT_REASON WaitReason;
+} SYSTEM_THREAD_INFORMATION, * PSYSTEM_THREAD_INFORMATION;
 
-// https://doxygen.reactos.org/da/df4/struct__SYSTEM__PROCESS__INFORMATION.html
+// https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntexapi.h#L1736
 typedef struct _SYSTEM_PROCESS_INFORMATION
 {
     ULONG NextEntryOffset;
     ULONG NumberOfThreads;
-    LARGE_INTEGER WorkingSetPrivateSize; //VISTA
-    ULONG HardFaultCount; //WIN7
-    ULONG NumberOfThreadsHighWatermark; //WIN7
-    ULONGLONG CycleTime; //WIN7
+    LARGE_INTEGER WorkingSetPrivateSize; // since VISTA
+    ULONG HardFaultCount; // since WIN7
+    ULONG NumberOfThreadsHighWatermark; // since WIN7
+    ULONGLONG CycleTime; // since WIN7
     LARGE_INTEGER CreateTime;
     LARGE_INTEGER UserTime;
     LARGE_INTEGER KernelTime;
@@ -741,12 +816,7 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     HANDLE InheritedFromUniqueProcessId;
     ULONG HandleCount;
     ULONG SessionId;
-    ULONG_PTR PageDirectoryBase;
-
-    //
-    // This part corresponds to VM_COUNTERS_EX.
-    // NOTE: *NOT* THE SAME AS VM_COUNTERS!
-    //
+    ULONG_PTR UniqueProcessKey; // since VISTA (requires SystemExtendedProcessInformation)
     SIZE_T PeakVirtualSize;
     SIZE_T VirtualSize;
     ULONG PageFaultCount;
@@ -759,17 +829,15 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     SIZE_T PagefileUsage;
     SIZE_T PeakPagefileUsage;
     SIZE_T PrivatePageCount;
-
-    //
-    // This part corresponds to IO_COUNTERS
-    //
     LARGE_INTEGER ReadOperationCount;
     LARGE_INTEGER WriteOperationCount;
     LARGE_INTEGER OtherOperationCount;
     LARGE_INTEGER ReadTransferCount;
     LARGE_INTEGER WriteTransferCount;
     LARGE_INTEGER OtherTransferCount;
-    //    SYSTEM_THREAD_INFORMATION TH[1];
+    SYSTEM_THREAD_INFORMATION Threads[1]; // SystemProcessInformation
+    // SYSTEM_EXTENDED_THREAD_INFORMATION Threads[1]; // SystemExtendedProcessinformation
+    // SYSTEM_EXTENDED_THREAD_INFORMATION + SYSTEM_PROCESS_INFORMATION_EXTENSION // SystemFullProcessInformation
 } SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
 
 // https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntpsapi.h#L110
@@ -889,5 +957,67 @@ typedef enum _PROCESSINFOCLASS
     ProcessEffectivePagePriority, // q: ULONG
     MaxProcessInfoClass
 } PROCESSINFOCLASS;
+
+// https://ntdoc.m417z.com/threadinfoclass
+typedef enum _THREADINFOCLASS
+{
+    ThreadBasicInformation, // q: THREAD_BASIC_INFORMATION
+    ThreadTimes, // q: KERNEL_USER_TIMES
+    ThreadPriority, // s: KPRIORITY (requires SeIncreaseBasePriorityPrivilege)
+    ThreadBasePriority, // s: KPRIORITY
+    ThreadAffinityMask, // s: KAFFINITY
+    ThreadImpersonationToken, // s: HANDLE
+    ThreadDescriptorTableEntry, // q: DESCRIPTOR_TABLE_ENTRY (or WOW64_DESCRIPTOR_TABLE_ENTRY)
+    ThreadEnableAlignmentFaultFixup, // s: BOOLEAN
+    ThreadEventPair,
+    ThreadQuerySetWin32StartAddress, // q: ULONG_PTR
+    ThreadZeroTlsCell, // s: ULONG // TlsIndex // 10
+    ThreadPerformanceCount, // q: LARGE_INTEGER
+    ThreadAmILastThread, // q: ULONG
+    ThreadIdealProcessor, // s: ULONG
+    ThreadPriorityBoost, // qs: ULONG
+    ThreadSetTlsArrayAddress, // s: ULONG_PTR // Obsolete
+    ThreadIsIoPending, // q: ULONG
+    ThreadHideFromDebugger, // q: BOOLEAN; s: void
+    ThreadBreakOnTermination, // qs: ULONG
+    ThreadSwitchLegacyState, // s: void // NtCurrentThread // NPX/FPU
+    ThreadIsTerminated, // q: ULONG // 20
+    ThreadLastSystemCall, // q: THREAD_LAST_SYSCALL_INFORMATION
+    ThreadIoPriority, // qs: IO_PRIORITY_HINT (requires SeIncreaseBasePriorityPrivilege)
+    ThreadCycleTime, // q: THREAD_CYCLE_TIME_INFORMATION
+    ThreadPagePriority, // qs: PAGE_PRIORITY_INFORMATION
+    ThreadActualBasePriority, // s: LONG (requires SeIncreaseBasePriorityPrivilege)
+    ThreadTebInformation, // q: THREAD_TEB_INFORMATION (requires THREAD_GET_CONTEXT + THREAD_SET_CONTEXT)
+    ThreadCSwitchMon, // Obsolete
+    ThreadCSwitchPmu,
+    ThreadWow64Context, // qs: WOW64_CONTEXT, ARM_NT_CONTEXT since 20H1
+    ThreadGroupInformation, // qs: GROUP_AFFINITY // 30
+    ThreadUmsInformation, // q: THREAD_UMS_INFORMATION // Obsolete
+    ThreadCounterProfiling, // q: BOOLEAN; s: THREAD_PROFILING_INFORMATION?
+    ThreadIdealProcessorEx, // qs: PROCESSOR_NUMBER; s: previous PROCESSOR_NUMBER on return
+    ThreadCpuAccountingInformation, // q: BOOLEAN; s: HANDLE (NtOpenSession) // NtCurrentThread // since WIN8
+    ThreadSuspendCount, // q: ULONG // since WINBLUE
+    ThreadHeterogeneousCpuPolicy, // q: KHETERO_CPU_POLICY // since THRESHOLD
+    ThreadContainerId, // q: GUID
+    ThreadNameInformation, // qs: THREAD_NAME_INFORMATION
+    ThreadSelectedCpuSets,
+    ThreadSystemThreadInformation, // q: SYSTEM_THREAD_INFORMATION // 40
+    ThreadActualGroupAffinity, // q: GROUP_AFFINITY // since THRESHOLD2
+    ThreadDynamicCodePolicyInfo, // q: ULONG; s: ULONG (NtCurrentThread)
+    ThreadExplicitCaseSensitivity, // qs: ULONG; s: 0 disables, otherwise enables
+    ThreadWorkOnBehalfTicket, // RTL_WORK_ON_BEHALF_TICKET_EX
+    ThreadSubsystemInformation, // q: SUBSYSTEM_INFORMATION_TYPE // since REDSTONE2
+    ThreadDbgkWerReportActive, // s: ULONG; s: 0 disables, otherwise enables
+    ThreadAttachContainer, // s: HANDLE (job object) // NtCurrentThread
+    ThreadManageWritesToExecutableMemory, // MANAGE_WRITES_TO_EXECUTABLE_MEMORY // since REDSTONE3
+    ThreadPowerThrottlingState, // POWER_THROTTLING_THREAD_STATE
+    ThreadWorkloadClass, // THREAD_WORKLOAD_CLASS // since REDSTONE5 // 50
+    ThreadCreateStateChange, // since WIN11
+    ThreadApplyStateChange,
+    ThreadStrongerBadHandleChecks, // since 22H1
+    ThreadEffectiveIoPriority, // q: IO_PRIORITY_HINT
+    ThreadEffectivePagePriority, // q: ULONG
+    MaxThreadInfoClass
+} THREADINFOCLASS;
 
 #endif // !STRUCTS_H

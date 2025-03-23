@@ -141,6 +141,7 @@
     <ClCompile Include="Encryption.c" />
     <ClCompile Include="Io.c" />
     <ClCompile Include="MultiDump.c" />
+    <ClCompile Include="Processes.c" />
     <ClCompile Include="SelfDeletion.c" />
   </ItemGroup>
   <ItemGroup>

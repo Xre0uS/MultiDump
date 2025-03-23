@@ -183,12 +183,12 @@ int main(int argc, char* argv[]) {
 
 	ParsedArgs	args = ParseArgs(argc, argv);
 
-	int standardDelay,
+	INT standardDelay,
 		longDelay;
 
 	if (args.connectionDelay) {
 		standardDelay = 3000;
-		longDelay = 120000;
+		longDelay = 60000;
 	}
 	else {
 		standardDelay = 1000;
@@ -875,7 +875,7 @@ SaveToLocal:
 		}
 		PrintKey(rc4Key, RC4KEYSIZE);
 
-	ErrorCleanUp:
+ErrorCleanUp:
 		FileExistsAndDelete(args.tempDmpPath, TRUE);
 
 		if (args.procDumpMode) {

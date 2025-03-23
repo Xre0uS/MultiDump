@@ -4,7 +4,7 @@ MultiDump is a post-exploitation tool written in C for dumping and extracting LS
 
 ![](multidump-defender.gif)
 
-Blog post: https://xre0us.github.io/posts/multidump
+Blog post: https://xre0us.io/posts/multidump
 
 MultiDump supports LSASS dump via `ProcDump.exe` or `comsvc.dll`, it offers two modes: a local mode that encrypts and stores the dump file locally, and a remote mode that sends the dump to a handler for decryption and analysis.
 
@@ -111,7 +111,7 @@ To further evade string analysis, most of the output messages can be excluded fr
 
 ---
 
-MultiDump might get detected on Windows 10 22H2 (19045) (sort of), and I have implemented a fix for it (sort of), the investigation and implementation deserves a blog post itself: https://xre0us.github.io/posts/saving-lsass-from-defender/
+MultiDump might get detected on Windows 10 22H2 (19045) (sort of), and I have implemented a fix for it (sort of), the investigation and implementation deserves a blog post itself: https://xre0us.io/posts/saving-lsass-from-defender/
 
 ## Credits
 

@@ -1,8 +1,8 @@
 #include <Windows.h>
 #include <stdio.h>
-#include <winternl.h>
 
 #include "Debug.h"
+#include "Common.h"
 
 typedef NTSTATUS(NTAPI* fnNtQueryInformationProcess)(
 	HANDLE           ProcessHandle,
@@ -62,7 +62,7 @@ BOOL CreateArgSpoofProcess(IN LPWSTR szStartupArgs, IN LPWSTR szRealArgs, IN DWO
 
 	NTSTATUS						STATUS = NULL;
 
-	WCHAR							szProcess[MAX_PATH];
+	WCHAR							szProcess[1024];
 
 	STARTUPINFOW					Si = { 0 };
 	PROCESS_INFORMATION				Pi = { 0 };
@@ -127,8 +127,8 @@ BOOL CreateArgSpoofProcess(IN LPWSTR szStartupArgs, IN LPWSTR szRealArgs, IN DWO
 	}
 
 	// reading the `ProcessParameters` structure from the peb of the remote process
-	// we read extra `0xFF` bytes to insure we have reached the CommandLine.Buffer pointer
-	// `0xFF` is 255, this can be whatever you like
+	// we read extra `0x200` bytes to insure we have reached the CommandLine.Buffer pointer
+	// `0xFF` is 512, this can be whatever you like
 	if (!ReadFromTargetProcess(Pi.hProcess, pPeb->ProcessParameters, &pParms, sizeof(RTL_USER_PROCESS_PARAMETERS) + 0x200)) {
 #ifdef DEBUG
 		printf("[!] Failed To Read Target's Process ProcessParameters \n");

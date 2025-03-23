@@ -40,6 +40,9 @@ WriteToFile(const unsigned char *data, size_t dataSize, const char *filePath, BO
 WCHAR* ConvertToWideString(const char* asciiStr, size_t length) {
     WCHAR* wideString = (WCHAR*)malloc((length + 1) * sizeof(WCHAR));
     if (wideString == NULL) {
+#ifdef DEBUG
+        printf("[!] Memory Allocation Failed for ConvertToWideString");
+#endif // DEBUG
         return NULL;
     }
 
@@ -49,6 +52,24 @@ WCHAR* ConvertToWideString(const char* asciiStr, size_t length) {
     wideString[length] = L'\0';
 
     return wideString;
+}
+
+
+CHAR* ConvertToAsciiString(const WCHAR* wideStr, size_t length) {
+    char* asciiString = (char*)malloc((length + 1) * sizeof(char));
+    if (asciiString == NULL) {
+#ifdef DEBUG
+        printf("[!] Memory Allocation Failed for ConvertToAsciiString");
+#endif // DEBUG
+        return NULL;
+    }
+
+    for (size_t i = 0; i < length; ++i) {
+        asciiString[i] = (char)wideStr[i];
+    }
+    asciiString[length] = '\0';
+
+    return asciiString;
 }
 
 BOOL ZeroOutBytes(const char* filePath, size_t numberOfBytes) {

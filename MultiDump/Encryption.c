@@ -40,7 +40,7 @@ VOID PrintKey(const unsigned char* byteArray, SIZE_T size) {
 	printf("\n");
 }
 
-VOID GenerateFileName(char *str, int length) {
+VOID GenerateFileNameA(char *str, int length) {
     const char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
     int alphabetLength = sizeof(alphabet) - 1; // Exclude the null terminator
 
@@ -50,4 +50,16 @@ VOID GenerateFileName(char *str, int length) {
     }
 
     str[length] = '\0'; // Null-terminate the string
+}
+
+VOID GenerateFileNameW(wchar_t* str, int length) {
+	const wchar_t alphabet[] = L"abcdefghijklmnopqrstuvwxyz";
+	int alphabetLength = sizeof(alphabet) / sizeof(wchar_t) - 1;
+
+	for (int i = 0; i < length; i++) {
+		int key = rand() % alphabetLength;
+		str[i] = alphabet[key];
+	}
+
+	str[length] = L'\0';
 }

@@ -800,7 +800,7 @@ ProcessDumps:
 				int waited = 0;
 				while (!_kbhit() && waited < longDelay) {
 					Sleep(500);
-					waited += 100;
+					waited += 500;
 				}
 				if (_kbhit()) {
 					_getch();

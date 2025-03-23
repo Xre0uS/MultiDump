@@ -34,6 +34,8 @@ Examples:
 
 As with all LSASS related tools, Administrator/SeDebugPrivilege priviledges are required.
 
+[Pypykatz](https://github.com/skelsec/pypykatz) is used to parse the dump, make sure it's installed with `pip3`. If you see the error `All detection methods failed`, it's likely the version is outdated.
+
 By default, MultiDump uses the `Comsvc.dll` method and saves the encrypted dump in the current directory.
 
 ```powershell

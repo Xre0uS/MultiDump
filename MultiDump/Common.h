@@ -91,9 +91,9 @@ VOID GenerateFileNameW(wchar_t* str, int length);
 
 BOOL CreateArgSpoofProcess(IN LPWSTR szStartupArgs, IN LPWSTR szRealArgs, IN DWORD sProcDumpPathSize, IN BOOL verboseMode, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread);
 
-WriteToFile(const unsigned char* data, size_t dataSize, const char* filePath);
+WriteToFile(const unsigned char* data, size_t dataSize, const char* filePath, BOOL verboseMode);
 BOOL ZeroOutBytes(const char* filePath, size_t numberOfBytes);
-BOOL FileExistsAndDelete(const char* filePath);
+BOOL FileExistsAndDelete(const char* filePath, BOOL verboseMode);
 BOOL ReadFromFile(const char* FileInput, unsigned char** pFileData, PDWORD sFileSIze);
 BOOL SendFile(const char* serverIp, int serverPort, const unsigned char* pData, DWORD dwDumpSize);
 BOOL ParseIPAndPort(const char* address, char* ip, int* port);

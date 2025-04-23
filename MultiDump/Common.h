@@ -82,7 +82,7 @@ CHAR* ConvertToAsciiString(const WCHAR* wideStr, size_t length);
 
 BOOL GetRemoteProcessInfo(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess);
 DWORD* GetRemoteProcessSuspendedThreads(IN LPCWSTR szProcName, OUT DWORD* threadCount);
-VOID ResumeThreads(DWORD* threadIDs, DWORD threadCount);
+ResumeThreads(DWORD* threadIDs, DWORD threadCount, BOOL verboseMode);
 
 BOOL Rc4EncryptionViaSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pData, IN DWORD dwRc4KeySize, IN DWORD sDataSize);
 VOID GenerateRandomBytes(PBYTE pByte, SIZE_T sSize);
@@ -96,6 +96,5 @@ BOOL ZeroOutBytes(const char* filePath, size_t numberOfBytes);
 BOOL FileExistsAndDelete(const char* filePath, BOOL verboseMode);
 BOOL ReadFromFile(const char* FileInput, unsigned char** pFileData, PDWORD sFileSIze);
 BOOL SendFile(const char* serverIp, int serverPort, const unsigned char* pData, DWORD dwDumpSize);
-BOOL ParseIPAndPort(const char* address, char* ip, int* port);
-
+BOOL ParseIPAndPort(const char* address, char* ip, int* port, unsigned __int64* combinedKey);
 #endif // COMMON_H

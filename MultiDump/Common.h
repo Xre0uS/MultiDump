@@ -82,7 +82,7 @@ CHAR* ConvertToAsciiString(const WCHAR* wideStr, size_t length);
 
 BOOL GetRemoteProcessInfo(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess);
 DWORD* GetRemoteProcessSuspendedThreads(IN LPCWSTR szProcName, OUT DWORD* threadCount);
-ResumeThreads(DWORD* threadIDs, DWORD threadCount, BOOL verboseMode);
+VOID ResumeThreads(DWORD* threadIDs, DWORD threadCount, BOOL verboseMode);
 
 BOOL Rc4EncryptionViaSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pData, IN DWORD dwRc4KeySize, IN DWORD sDataSize);
 VOID GenerateRandomBytes(PBYTE pByte, SIZE_T sSize);

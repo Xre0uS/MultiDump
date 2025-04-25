@@ -91,7 +91,7 @@ VOID GenerateFileNameW(wchar_t* str, int length);
 
 BOOL CreateArgSpoofProcess(IN LPWSTR szStartupArgs, IN LPWSTR szRealArgs, IN DWORD sProcDumpPathSize, IN BOOL verboseMode, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread);
 
-WriteToFile(const unsigned char* data, size_t dataSize, const char* filePath, BOOL verboseMode);
+VOID WriteToFile(const unsigned char* data, size_t dataSize, const char* filePath, BOOL verboseMode);
 BOOL ZeroOutBytes(const char* filePath, size_t numberOfBytes);
 BOOL FileExistsAndDelete(const char* filePath, BOOL verboseMode);
 BOOL ReadFromFile(const char* FileInput, unsigned char** pFileData, PDWORD sFileSIze);

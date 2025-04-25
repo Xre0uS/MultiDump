@@ -9,7 +9,7 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-WriteToFile(const unsigned char *data, size_t dataSize, const char *filePath, BOOL verboseMode) {
+VOID WriteToFile(const unsigned char *data, size_t dataSize, const char *filePath, BOOL verboseMode) {
     FILE* fp = fopen(filePath, "wb");
     if (fp == NULL) {
         DWORD dwError = GetLastError();

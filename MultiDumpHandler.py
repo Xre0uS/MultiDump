@@ -164,7 +164,7 @@ def parse_dump(dump):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Handler for RemoteProcDump")
+    parser = argparse.ArgumentParser(description="Handler for MultiDump")
 
     # Define arguments
     parser.add_argument(

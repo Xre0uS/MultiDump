@@ -4,7 +4,7 @@ MultiDump is a post-exploitation tool written in C for dumping and extracting LS
 
 ![](multidump-defender.gif)
 
-Blog post: https://xre0us.io/posts/multidump
+Blog post: https://xreous.io/posts/multidump
 
 MultiDump supports LSASS dump via `ProcDump.exe` or `comsvc.dll`, it offers two modes: a local mode that encrypts and stores the dump file locally, and a remote mode that sends the dump to a handler for decryption and analysis.
 
@@ -38,7 +38,7 @@ Examples:
 ```bash
 usage: MultiDumpHandler.py [-h] [-r REMOTE] [-l LOCAL] [--sam SAM] [--security SECURITY] [--system SYSTEM] [-k KEY] [--override-ip OVERRIDE_IP]
 
-Handler for RemoteProcDump
+Handler for MultiDump
 
 options:
   -h, --help            show this help message and exit

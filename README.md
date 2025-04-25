@@ -54,9 +54,9 @@ options:
                         Manually specify the IP address for key generation in remote mode, for proxied connection
 ```
 
-As with all LSASS related tools, Administrator/SeDebugPrivilege priviledges are required.
+As with all LSASS related tools, Administrator/SeDebugPrivilege privileges are required.
 
-The handler depends on [Pypykatz](https://github.com/skelsec/pypykatz) to parse the LSASS dump, and [impacket](https://github.com/fortra/impacket) to parse the registry saves. They should be installed in your enviroment. If you see the error `All detection methods failed`, it's likely the Pypykatz version is outdated.
+The handler depends on [Pypykatz](https://github.com/skelsec/pypykatz) to parse the LSASS dump, and [impacket](https://github.com/fortra/impacket) to parse the registry saves. They should be installed in your environment. If you see the error `All detection methods failed`, it's likely the Pypykatz version is outdated.
 
 By default, MultiDump uses the `Comsvc.dll` method and saves the encrypted dump in the current directory.
 
@@ -72,9 +72,9 @@ MultiDump.exe
 ./MultiDumpHandler.py -l dciqjp.dat -k 91ea54633cd31cc23eb3089928e9cd5af396d35ee8f738d8bdf2180801ee0cb1bae8f0cc4cc3ea7e9ce0a74876efe87e2c053efa80ee1111c4c4e7c640c0e33e
 ```
 
-If `--procdump` is used, `ProcDump.exe` will be writtern to disk to dump LSASS.
+If `--procdump` is used, `ProcDump.exe` will be written to disk to dump LSASS.
 
-In cmd, `--procdump` _must_ be used, or it will fail per [#5](https://github.com/Xre0uS/MultiDump/issues/5), recommend to always use powerhsell if possible.
+In cmd, `--procdump` _must_ be used, or it will fail per [#5](https://github.com/Xre0uS/MultiDump/issues/5), recommend to always use powershell if possible.
 
 In remote mode, MultiDump connects to the handler's listener.
 

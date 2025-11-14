@@ -13,6 +13,19 @@ from impacket import version
 from impacket.examples.secretsdump import LocalOperations, LSASecrets, SAMHashes
 from pypykatz.pypykatz import pypykatz
 
+# Try to import pycryptodome for faster RC4
+USE_PYCRYPTODOME = False
+
+
+try:
+
+    from Crypto.Cipher import ARC4 as PyCryptoARC4
+    USE_PYCRYPTODOME = True
+    print(f"[+] Using pycryptodome for RC4 (fast)")
+except ImportError:
+    print("[!] pycryptodome not found, using pure Python RC4 (slower)")
+    print("[i] Install with: pip install pycryptodome")
+
 
 class TerminalColor:
     HEADER = "\033[95m"
@@ -207,6 +220,21 @@ def read_file(filepath):
 
 
 def rc4_decrypt(key, data):
+    if len(key) < 1 or len(key) > 256:
+        raise ValueError(f"RC4 key must be between 1 and 256 bytes, got {len(key)} bytes")
+    
+    if USE_PYCRYPTODOME:
+        try:
+            cipher = PyCryptoARC4.new(key)
+            return cipher.decrypt(data)
+        except Exception as e:
+            print(f"{TerminalColor.WARNING}[!] Pycryptodome failed ({e}), using pure Python RC4{TerminalColor.ENDC}")
+            return rc4_decrypt_pure_python(key, data)
+    else:
+        return rc4_decrypt_pure_python(key, data)
+
+
+def rc4_decrypt_pure_python(key, data):
     # KSA
     S = list(range(256))
     j = 0
